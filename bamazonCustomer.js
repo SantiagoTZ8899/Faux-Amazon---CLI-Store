@@ -32,19 +32,21 @@ function displayProducts() {
         console.log(`This is what we have for sale \n\n${data}`);
         console.log("-----------------");
 
-        userChoices();
+        userItemChoice();
 
     });
 }
 
 // Function to prompt user to start purchasing order
-function userChoices(inventory){
+function userItemChoice(inventory){
     inquirer.prompt([
         {
             name: "id",
             type: "input",
             message: "Enter the ID of the item you would like to purchase",
-            //      include a way to check if the input is a matching id number with an if/else statement, validate?
+
+            // include a way to check if the input is a matching id number with an if/else statement, validate?
+
             validate: function(value) {
                 if (ifNaN(value) === false) {
                     return true;
@@ -53,13 +55,39 @@ function userChoices(inventory){
                         return false;
                 }
         }
-    ]).then(funtion(value){
+    ]).then(function(value){
+
+        //  save user quantity input to compare with the stock
+
         let chosenItemId = parseInt(value.input);
         let itemName = checkInventory(chosenItemId, inventory);
-    })
-        
-    
-    //  save user quantity input to compare with the stoc
+
+        // prompt customer with desired quantity if there is a matching product ID in the database from other function
+        // console log if not enough
+
+        if (product) {
+            userQuantityChoice(product);
+        } else {
+            console.log("Sorry, we do not have that item");
+            // send customer back to the product list
+            displayProducts();
+        }
+    });
+}
+
+// function to ask user for desired quantity, similar to above function
+function userQuantityChoice(item) {
+    inquirer.prompt([
+        {
+            name: "input",
+            type: "quantity",
+            message: "How many would you like?",
+            validate: function(val){
+                return val > 0;
+            }
+        }
+    ]).then
+}
 
 //  function to check inventory and if there is enough items in stock to sell
 function checkInventory(chosenItemId, inventory) {
