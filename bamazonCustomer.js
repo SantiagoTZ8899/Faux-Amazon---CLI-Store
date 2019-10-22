@@ -23,12 +23,12 @@ function displayProducts() {
     
     // query/get info from linked sql database/table
     let query = "SELECT * FROM products";
-    connection.query(query,function (err, res) {
+    connection.query(query, function (err, res) {
         if (err) throw err;
 
         // map the data response in a format I like, and make it show the info I need it show
         // show the customer the price
-        let data = res.map(res => [`ID: ${res.id}\n`, ` ${res.product_name}\n`, ` Price: $${res.price} \n`]);
+        let data = res.map(res => [` ID: ${res.id}\n`, ` ${res.product_name}\n`, ` Price: $${res.price} \n`]);
         console.log(`This is what we have for sale \n\n${data}`);
         console.log("-----------------");
 
@@ -41,32 +41,29 @@ function displayProducts() {
 function userItemChoice(inventory){
     inquirer.prompt([
         {
-            name: "id",
-            type: "input",
-            message: "Enter the ID of the item you would like to purchase",
+            name: "input",
+            type: "choice",
+            message: "Enter the ID of the item you would like to purchase [exit with q]",
 
             // include a way to check if the input is a matching id number with an if/else statement, validate?
 
-            validate: function(value) {
-                if (ifNaN(value) === false) {
-                    return true;
-                    console.log("You should enter a matching ID number...");
-                    }
-                        return false;
+            validate: function(val) {
+                return !isNaN(val) || val.toLowerCase() === "q";
                 }
-        }
-    ]).then(function(value){
+            }
+    ]).then(function(val) {
 
         //  save user quantity input to compare with the stock
+        // turn string into a number
 
-        let chosenItemId = parseInt(value.input);
+        quitShopping(val.choice);
+        let chosenItemId = parseInt(val.choice);
         let itemName = checkInventory(chosenItemId, inventory);
 
         // prompt customer with desired quantity if there is a matching product ID in the database from other function
         // console log if not enough
-
-        if (product) {
-            userQuantityChoice(product);
+        if (itemName) {
+            userQuantityChoice(itemName);
         } else {
             console.log("Sorry, we do not have that item");
             // send customer back to the product list
@@ -76,17 +73,41 @@ function userItemChoice(inventory){
 }
 
 // function to ask user for desired quantity, similar to above function
-function userQuantityChoice(item) {
+function userQuantityChoice(itemName) {
     inquirer.prompt([
         {
             name: "input",
             type: "quantity",
             message: "How many would you like?",
             validate: function(val){
-                return val > 0;
+                return val > 0 || val.toLowerCase() === "q";
             }
         }
-    ]).then
+    ]).then(function(val) {
+        // turn strin into a number
+        quitShopping(val.quantity);
+        let quantity = parseInt(val.quantity);
+
+        // loop through the database to check if there if enough inventory of the chosen item
+        if (quantity > itemName.stock_quantity) {
+            console.log("Sorry, we do not have enough of that item.");
+        } else {
+            purchaseItem();
+        }
+    });
+}
+
+// function to purchase the item
+// function to show total cost, include tax?
+// update database/inventory after an item is bought
+function purchaseItem(itemName, quantity){
+    connection.query( "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
+    [quantity, itemName.chosenItemId],
+    function (err, res) {
+        console.log("You purchased " + quantity + " " + itemName.product_name);
+        displayProducts();
+        }
+    );
 }
 
 //  function to check inventory and if there is enough items in stock to sell
@@ -94,16 +115,16 @@ function checkInventory(chosenItemId, inventory) {
     // loop through the inventory, and check if the user ID-input matches any IDs in the database
     for (let i = 0; i < inventory.length; i++) {
         // if it matches, then return the item
-        if(invertory[i].id === chosenItemId) {
+        if (inventory[i].id === chosenItemId) {
             return inventory[i];
         }
     }
-    return "that does not match our records";
+    return null;
 }
 
-//      function to check the quantity stock of items in database
-//      console log the results
-
-//      function to show total cost, include tax?
-
-//      update database/inventory after an item is bought
+function quitShopping(choice) {
+    if (choice.toLowerCase() === "q") {
+        console.log("Thank you, come again.");
+        process.exit(0);
+    }
+}
