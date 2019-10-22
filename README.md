@@ -19,7 +19,7 @@ Faux Amazon is a webstore that is linked to a MySQL database, and can use, edit,
 #### Screenshots of working app
 
 1. Displaying the items
-![DisplayItems](/images/bamazon1.png)
+![DisplayItems](/image/bamazon1.png)
 2. Selecting an Item ID
 3. Selecting a Quantity
 4. Purchasing Item and Updating Inventory
