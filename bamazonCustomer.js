@@ -33,6 +33,7 @@ function displayProducts() {
         console.log("-----------------");
 
         userItemChoice();
+        quitShopping();
 
     });
 }
@@ -41,8 +42,8 @@ function displayProducts() {
 function userItemChoice(inventory){
     inquirer.prompt([
         {
-            name: "input",
-            type: "choice",
+            type: "input",
+            name: "choice",
             message: "Enter the ID of the item you would like to purchase [exit with q]",
 
             // include a way to check if the input is a matching id number with an if/else statement, validate?
@@ -76,8 +77,8 @@ function userItemChoice(inventory){
 function userQuantityChoice(itemName) {
     inquirer.prompt([
         {
-            name: "input",
-            type: "quantity",
+            type: "input",
+            name: "quantity",
             message: "How many would you like?",
             validate: function(val){
                 return val > 0 || val.toLowerCase() === "q";
@@ -91,18 +92,18 @@ function userQuantityChoice(itemName) {
         // loop through the database to check if there if enough inventory of the chosen item
         if (quantity > itemName.stock_quantity) {
             console.log("Sorry, we do not have enough of that item.");
+            displayProducts();
         } else {
-            purchaseItem();
+            purchaseItem(itemName, quantity);
         }
     });
 }
 
 // function to purchase the item
-// function to show total cost, include tax?
 // update database/inventory after an item is bought
 function purchaseItem(itemName, quantity){
     connection.query( "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
-    [quantity, itemName.chosenItemId],
+    [quantity, itemName.id],
     function (err, res) {
         console.log("You purchased " + quantity + " " + itemName.product_name);
         displayProducts();
@@ -113,7 +114,7 @@ function purchaseItem(itemName, quantity){
 //  function to check inventory and if there is enough items in stock to sell
 function checkInventory(chosenItemId, inventory) {
     // loop through the inventory, and check if the user ID-input matches any IDs in the database
-    for (let i = 0; i < inventory.length; i++) {
+    for (let i = 0; i < product.length; i++) {
         // if it matches, then return the item
         if (inventory[i].id === chosenItemId) {
             return inventory[i];
@@ -123,8 +124,8 @@ function checkInventory(chosenItemId, inventory) {
 }
 
 function quitShopping(choice) {
-    if (choice.toLowerCase() === "q") {
+    if (choice === "q") {
         console.log("Thank you, come again.");
-        process.exit(0);
+        process.exit();
     }
 }
